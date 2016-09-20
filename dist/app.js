@@ -69,18 +69,22 @@
 	// 卡哥 392616
 	// 楚楚可云 314497
 	// Xuebaby 377420
-	var roomId = 377420;
+	// 主播福成	440526
+	// 一万八 403249
+	var roomId = 403249;
 
-	Chat.getChatServerInfo(roomId).then(Chat.connect).then(Chat.listenEvent).then(Chat.heartBeat).then(function () {
-		// 开启感谢模式
-		setInterval(function () {
-			// 获取感谢语句
-			var msg = thankUtils.buildAllThankMsg();
-			if (msg) {
-				Chat.sendMsg(msg, roomId, 'd0c60d6da58bec8106b0918e0c9e2878');
-				console.log('待播报礼物人数：' + Object.keys(_thankQueue2.default.all()).length);
-			}
-		}, 3000);
+	Chat.login().then(function (data) {
+		return Chat.getChatServerInfo(roomId).then(Chat.connect).then(Chat.listenEvent).then(Chat.heartBeat).then(function () {
+			// 开启感谢模式
+			setInterval(function () {
+				// 获取感谢语句
+				var msg = thankUtils.buildAllThankMsg();
+				if (msg) {
+					Chat.sendMsg(msg, roomId, data.token);
+					console.log('待播报礼物人数：' + Object.keys(_thankQueue2.default.all()).length);
+				}
+			}, 15000);
+		});
 	}).catch(function (e) {
 		console.log('error', e);
 	});
@@ -199,7 +203,7 @@
 			console.log('队列无礼物。。。');
 			return;
 		}
-		var msg = '感谢［' + item.nickName + '］送的';
+		var msg = '感谢' + item.nickName + '送的';
 		if (item[_giftType2.default.ZHUZI]) {
 			msg += item[_giftType2.default.ZHUZI] + '个竹子。';
 		}
@@ -226,7 +230,7 @@
 	function buildAllThankMsg() {
 		var items = _thankQueue2.default.nextAll();
 		var msg = '';
-		for (var i = items.length - 1; i >= 0; i--) {
+		for (var i = 0; i < items.length; i++) {
 			var item = items[i];
 			msg += buildThankMsg(item);
 		}
@@ -264,6 +268,7 @@
 	exports.listenEvent = listenEvent;
 	exports.heartBeat = heartBeat;
 	exports.sendMsg = sendMsg;
+	exports.login = login;
 
 	var _nodeFetch = __webpack_require__(6);
 
@@ -296,6 +301,8 @@
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var cookie = 'M=t%3D1473337056%26v%3D1.0%26mt%3D1473337056%26s%3Dafad0b743d36b4b20e87cf6e8f65ad72; R=r%3D32710864%26u%3DCnaqnGi32710864%26n%3D%25R4%25O8%25N4%25R4%25O8%25NN%25R4%25O8%25NQ%25R6%2596%2587%26le%3DMJI2MJ1yWGDjZGV2YzAioD%3D%3D%26m%3DZGH2Amp5BGp5ZGD%3D%26im%3DnUE0pPHmDFHlEvHlEzx3YaOxnJ0hM3ZyZxLmAwD0BJD2AQAuZJL5MGR2ZmDkZwOwBGAyAJZ4MJSyZv5jozp%3D';
 
 	/**
 	 * 获取聊天服务器信息
@@ -389,7 +396,7 @@
 				var identity = from.identity;
 				var sp_identity = from.sp_identity;
 				if (sp_identity != 0) {
-					nickName = ('#[' + (0, _userType2.default)(sp_identity) + ']# ' + nickName).red;
+					nickName = ('#[' + (0, _userType2.default)(sp_identity, true) + ']# ' + nickName).red;
 				}
 				if (identity != 30) {
 					nickName = ('[' + (0, _userType2.default)(identity) + '] ' + nickName).yellow;
@@ -434,6 +441,7 @@
 					thankUtils.addThankItem(model, _giftType2.default.FANTUAN, 1);
 					console.log(('*******\t' + nickName + '送给主播[1]个饭团\t*******').cyan);
 				} else if (price / 50 === 1) {
+					console.log(msg);
 					thankUtils.addThankItem(model, _giftType2.default.KAOYU, 1);
 					console.log(('*******\t' + nickName + '送给主播[1]个烤鱼\t*******').cyan);
 				} else if (price / 1000 === 1) {
@@ -473,8 +481,8 @@
 					//    { from: { rid: '-1' },
 					//      to: { toroom: '337852' },
 					//      content: '122156459' } }
-					var _toRoomId = model.to.toroom;
-					console.log('有人离开了，去了房间: ' + _toRoomId);
+					var toRoomId = model.to.toroom;
+					console.log('有人离开了，去了房间: ' + toRoomId);
 					break;
 				}
 			case 'fotiaoqiang':
@@ -496,9 +504,9 @@
 					//        times: '1',
 					//        usercombo: '1' } } }
 					var _to = model.to;
-					var _toUserName = _to.nickName;
-					var _toRoomId2 = _to.roomid;
-					console.log(nickName + '给' + _toUserName + '送了1个佛跳墙，房间号为：' + _toRoomId2);
+					var toUserName = _to.nickName;
+					var _toRoomId = _to.roomid;
+					console.log(nickName + '给' + toUserName + '送了1个佛跳墙，房间号为：' + _toRoomId);
 					break;
 				}
 			case 'xiangyun':
@@ -518,7 +526,10 @@
 					//         roomshow: '1',
 					//         times: '1',
 					//         usercombo: '1' } } }
-					console.log(nickName + '给' + toUserName + '送了1个祥云，房间号为：' + toRoomId, content);
+					var _to2 = model.to;
+					var _toUserName = _to2.nickName;
+					var _toRoomId2 = _to2.roomid;
+					console.log(nickName + '给' + _toUserName + '送了1个祥云，房间号为：' + _toRoomId2, content);
 					break;
 				}
 			case 'adv':
@@ -547,6 +558,22 @@
 					//      to: { toroom: '314497' },
 					//      content: { bamboos: '266', content: '个竹子', newBamboos: '0' } } }
 					console.log('[' + nickName + '在' + from.__plat + ']：抢到了' + content.bamboos + content.content);
+					break;
+				}
+			case 'chaoguantixing':
+				{
+					// { type: '22',
+					//   time: 1474383833,
+					//   data:
+					//    { from:
+					//       { nickName: 'admin',
+					//         reminder_timestamp: '1474384013',
+					//         rid: '0',
+					//         ttl: '180',
+					//         userName: 'admin' },
+					//      to: { toroom: '403249' },
+					//			content: '请主播注意直播正能量导向，切勿过度调戏水友。维持良好直播秩序' } }
+					console.log(('超管提醒：' + content).red);
 					break;
 				}
 			default:
@@ -621,17 +648,29 @@
 				'Accept': '*/*',
 				'User-Agent': 'PandaTV-ios/1.1.2 (iPhone; iOS 9.3.5; Scale/3.00)',
 				'xiaozhangdepandatv': '1',
-				'Cookie': 'M=t%3D1473337056%26v%3D1.0%26mt%3D1473337056%26s%3Dafad0b743d36b4b20e87cf6e8f65ad72; R=r%3D32710864%26u%3DCnaqnGi32710864%26n%3D%25R4%25O8%25N4%25R4%25O8%25NN%25R4%25O8%25NQ%25R6%2596%2587%26le%3DMJI2MJ1yWGDjZGV2YzAioD%3D%3D%26m%3DZGH2Amp5BGp5ZGD%3D%26im%3DnUE0pPHmDFHlEvHlEzx3YaOxnJ0hM3ZyZxLmAwD0BJD2AQAuZJL5MGR2ZmDkZwOwBGAyAJZ4MJSyZv5jozp%3D'
+				'Cookie': cookie
 			},
 			body: '__channel=appstore&__plat=ios&__version=1.1.2.1218&content=' + msg + '&pt_sign=' + sign + '&pt_time=1474343949&roomid=' + roomId + '&type=1'
 		}).then(function (resp) {
 			return resp.json();
 		}).then(function (res) {
 			if (res.errno !== 0) {
-				console.log('消息发送失败!'.red);
+				console.log('消息发送失败!'.red, res);
 			}
 		}).catch(function (err) {
 			console.log('发送消息失败...', err);
+		});
+	}
+
+	function login() {
+		return (0, _nodeFetch2.default)('http://api.m.panda.tv/ajax_get_token_and_login?__channel=appstore&__plat=ios&__version=1.1.2.1218&pt_sign=7dfa5055a28eb0813debd699f56778d5&pt_time=1474337963&authseq=E72412EF-95BB-4B6E-A527-27EB7A531331', {
+			headers: {
+				'Cookie': cookie
+			}
+		}).then(function (resp) {
+			return resp.json();
+		}).then(function (res) {
+			return res.data;
 		});
 	}
 
@@ -747,6 +786,10 @@
 		'1010': {
 			key: 'qiangzhuzi',
 			text: '抢到了竹子'
+		},
+		'22': {
+			key: 'chaoguantixing',
+			text: '超管提醒'
 		}
 	};
 

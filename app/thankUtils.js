@@ -25,7 +25,7 @@ export function buildThankMsg(item) {
 		console.log('队列无礼物。。。');
 		return;
 	}
-	let msg = `感谢［${item.nickName}］送的`;
+	let msg = `感谢${item.nickName}送的`;
 	if(item[GiftType.ZHUZI]){
 		msg += `${item[GiftType.ZHUZI]}个竹子。`;
 	}
@@ -52,7 +52,7 @@ export function buildThankMsg(item) {
 export function buildAllThankMsg() {
 	const items = thankQueue.nextAll();
 	let msg = '';
-	for (var i = items.length - 1; i >= 0; i--) {
+	for (var i = 0; i < items.length; i++) {
 		let item = items[i];
 		msg += buildThankMsg(item);
 	}

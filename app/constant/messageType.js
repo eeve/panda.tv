@@ -38,6 +38,10 @@ const Types = {
 	'1010': {
 		key: 'qiangzhuzi',
 		text: '抢到了竹子'
+	},
+	'22': {
+		key: 'chaoguantixing',
+		text: '超管提醒'
 	}
 }
 
