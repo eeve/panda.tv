@@ -62,6 +62,14 @@
 
 	var Chat = _interopRequireWildcard(_chat);
 
+	var _config = __webpack_require__(13);
+
+	var _config2 = _interopRequireDefault(_config);
+
+	var _nodeFetch = __webpack_require__(6);
+
+	var _nodeFetch2 = _interopRequireDefault(_nodeFetch);
+
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -71,19 +79,31 @@
 	// Xuebaby 377420
 	// 主播福成	440526
 	// 一万八 403249
-	var roomId = 403249;
+	// 刘从心 392132
+	// 洪湖小肖 337852
+	var roomId = 337852;
 
-	Chat.login().then(function (data) {
-		return Chat.getChatServerInfo(roomId).then(Chat.connect).then(Chat.listenEvent).then(Chat.heartBeat).then(function () {
+	Chat.login(_config2.default.account, _config2.default.password).then(function (userInfo) {
+		console.log('登录用户信息', userInfo);
+		return Chat.getChatServerInfo(roomId).then(Chat.connect).then(Chat.listenEvent).then(Chat.heartBeat).then(Chat.getTokenAndLogin).then(function (data) {
+			console.log('发送弹幕的token: ', data.token);
+			data.token = 'd02927c0bd83bfac5c2a00e6414f1796';
 			// 开启感谢模式
+			var second = 0;
 			setInterval(function () {
 				// 获取感谢语句
 				var msg = thankUtils.buildAllThankMsg();
 				if (msg) {
 					Chat.sendMsg(msg, roomId, data.token);
 					console.log('待播报礼物人数：' + Object.keys(_thankQueue2.default.all()).length);
+				} else {
+					second++;
+					if (second > 3) {
+						Chat.sendMsg('6666666', roomId, data.token);
+						second = 0;
+					}
 				}
-			}, 15000);
+			}, 3000);
 		});
 	}).catch(function (e) {
 		console.log('error', e);
@@ -268,6 +288,7 @@
 	exports.listenEvent = listenEvent;
 	exports.heartBeat = heartBeat;
 	exports.sendMsg = sendMsg;
+	exports.getTokenAndLogin = getTokenAndLogin;
 	exports.login = login;
 
 	var _nodeFetch = __webpack_require__(6);
@@ -278,11 +299,15 @@
 
 	var _net2 = _interopRequireDefault(_net);
 
-	var _userType = __webpack_require__(8);
+	var _cookie = __webpack_require__(8);
+
+	var _cookie2 = _interopRequireDefault(_cookie);
+
+	var _userType = __webpack_require__(9);
 
 	var _userType2 = _interopRequireDefault(_userType);
 
-	var _messageType = __webpack_require__(9);
+	var _messageType = __webpack_require__(10);
 
 	var _messageType2 = _interopRequireDefault(_messageType);
 
@@ -294,7 +319,11 @@
 
 	var thankUtils = _interopRequireWildcard(_thankUtils);
 
-	var _bluebird = __webpack_require__(10);
+	var _CryptoJS = __webpack_require__(11);
+
+	var _CryptoJS2 = _interopRequireDefault(_CryptoJS);
+
+	var _bluebird = __webpack_require__(12);
 
 	var _bluebird2 = _interopRequireDefault(_bluebird);
 
@@ -302,7 +331,15 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var cookie = 'M=t%3D1473337056%26v%3D1.0%26mt%3D1473337056%26s%3Dafad0b743d36b4b20e87cf6e8f65ad72; R=r%3D32710864%26u%3DCnaqnGi32710864%26n%3D%25R4%25O8%25N4%25R4%25O8%25NN%25R4%25O8%25NQ%25R6%2596%2587%26le%3DMJI2MJ1yWGDjZGV2YzAioD%3D%3D%26m%3DZGH2Amp5BGp5ZGD%3D%26im%3DnUE0pPHmDFHlEvHlEzx3YaOxnJ0hM3ZyZxLmAwD0BJD2AQAuZJL5MGR2ZmDkZwOwBGAyAJZ4MJSyZv5jozp%3D';
+	var PD_COOKIES = [];
+
+	var headers = {
+		'Accept-Language': 'zh-Hans-CN;q=1, en-CN;q=0.9, zh-Hant-CN;q=0.8, ja-JP;q=0.7',
+		'Accept': '*/*',
+		'Connection': 'keep-alive',
+		'Accept-Encoding': 'gzip, deflate',
+		'User-Agent': 'PandaTV-ios/1.1.2 (iPhone; iOS 9.3.5; Scale/3.00)'
+	};
 
 	/**
 	 * 获取聊天服务器信息
@@ -641,16 +678,23 @@
 	}
 
 	function sendMsg(msg, roomId, sign) {
+		console.log(Object.assign(headers, {
+			'Host': 'api.m.panda.tv',
+			// Cookie: PD_COOKIES.join('; '),
+			'Cookie': 'R=r%3D32710864%26u%3DCnaqnGi32710864%26n%3D%25R4%25O8%25N4%25R4%25O8%25NN%25R4%25O8%25NQ%25R6%2596%2587%26le%3DMJI2MJ1yWGDjZGV2YzAioD%3D%3D%26m%3DZGH2Amp5BGp5ZGD%3D%26im%3DnUE0pPHmDFHlEvHlEzx3YaOxnJ0hM3ZyZxLmAwD0BJD2AQAuZJL5MGR2ZmDkZwOwBGAyAJZ4MJSyZv5jozp%3D; M=t%3D1474441163%26v%3D1.0%26mt%3D1474441163%26s%3D57d3ea249914c91aaedaaafce60e0fff;',
+			'xiaozhangdepandatv': 1,
+			'Content-Type': 'application/x-www-form-urlencoded'
+		}));
 		(0, _nodeFetch2.default)('http://api.m.panda.tv/ajax_send_group_msg', {
 			method: 'POST',
-			headers: {
+			headers: Object.assign(headers, {
 				'Host': 'api.m.panda.tv',
-				'Accept': '*/*',
-				'User-Agent': 'PandaTV-ios/1.1.2 (iPhone; iOS 9.3.5; Scale/3.00)',
-				'xiaozhangdepandatv': '1',
-				'Cookie': cookie
-			},
-			body: '__channel=appstore&__plat=ios&__version=1.1.2.1218&content=' + msg + '&pt_sign=' + sign + '&pt_time=1474343949&roomid=' + roomId + '&type=1'
+				// Cookie: PD_COOKIES.join('; '),
+				'Cookie': 'R=r%3D32710864%26u%3DCnaqnGi32710864%26n%3D%25R4%25O8%25N4%25R4%25O8%25NN%25R4%25O8%25NQ%25R6%2596%2587%26le%3DMJI2MJ1yWGDjZGV2YzAioD%3D%3D%26m%3DZGH2Amp5BGp5ZGD%3D%26im%3DnUE0pPHmDFHlEvHlEzx3YaOxnJ0hM3ZyZxLmAwD0BJD2AQAuZJL5MGR2ZmDkZwOwBGAyAJZ4MJSyZv5jozp%3D; M=t%3D1474441163%26v%3D1.0%26mt%3D1474441163%26s%3D57d3ea249914c91aaedaaafce60e0fff;',
+				'xiaozhangdepandatv': 1,
+				'Content-Type': 'application/x-www-form-urlencoded'
+			}),
+			body: '__channel=appstore&__plat=ios&__version=1.1.2.1218&content=' + msg + '&pt_sign=' + sign + '&pt_time=1474423296&roomid=' + roomId + '&type=1'
 		}).then(function (resp) {
 			return resp.json();
 		}).then(function (res) {
@@ -662,15 +706,106 @@
 		});
 	}
 
-	function login() {
-		return (0, _nodeFetch2.default)('http://api.m.panda.tv/ajax_get_token_and_login?__channel=appstore&__plat=ios&__version=1.1.2.1218&pt_sign=7dfa5055a28eb0813debd699f56778d5&pt_time=1474337963&authseq=E72412EF-95BB-4B6E-A527-27EB7A531331', {
-			headers: {
-				'Cookie': cookie
-			}
+	/**
+	 * 登录并获取发送弹幕的token
+	 * @return {[type]} [description]
+	 */
+	function getTokenAndLogin() {
+		// `http://api.m.panda.tv/ajax_get_token_and_login?__version=1.1.2.1218&__plat=ios&__channel=appstore&authseq=8ED353E2-3728-48DF-B70D-B1F36B9DDCF0`
+		return (0, _nodeFetch2.default)('http://api.m.panda.tv/ajax_get_token?__version=1.1.2.1218&__plat=ios&__channel=appstore', {
+			headers: Object.assign(headers, {
+				Cookie: PD_COOKIES.join('; '),
+				xiaozhangdepandatv: 1
+			})
 		}).then(function (resp) {
 			return resp.json();
 		}).then(function (res) {
 			return res.data;
+		});
+	}
+
+	/**
+	 * 获取加密密码
+	 * @param  {[type]} password [description]
+	 * @return {[type]}          [description]
+	 */
+
+	function _AESPassword(password) {
+		return new _bluebird2.default(function (resolve, reject) {
+			(0, _nodeFetch2.default)('https://u.panda.tv/ajax_aeskey').then(function (resp) {
+				// 收集Cookie
+				// SESSCYPHP
+				var cs = resp.headers.get('Set-Cookie');
+				PD_COOKIES.push(cs.split(';')[0]);
+				return resp.json();
+			}).then(function (res) {
+				if (res && res.errno == 0 && res.data) {
+					var key = _CryptoJS2.default.enc.Utf8.parse(res.data);
+					var iv = _CryptoJS2.default.enc.Utf8.parse("995d1b5ebbac3761");
+					var pwd = _CryptoJS2.default.AES.encrypt(password, key, {
+						iv: iv,
+						mode: _CryptoJS2.default.mode.CBC,
+						padding: _CryptoJS2.default.pad.ZeroPadding
+					}).toString();
+					resolve(pwd);
+				} else {
+					reject('获取AES KEY失败');
+				}
+			}).catch(function (err) {
+				return reject(err);
+			});
+		});
+	}
+
+	function _login(query) {
+		return new _bluebird2.default(function (resolve, reject) {
+			var url = 'https://u.panda.tv/ajax_login?' + query;
+			(0, _nodeFetch2.default)(url, {
+				headers: {
+					'Host': 'api.m.panda.tv',
+					'Origin': 'https://m.panda.tv',
+					'Referer': 'https://m.panda.tv/login.html?__plat=ios&__version=1.1.2.1218&__channel=appstore&__guid=CEF91AE5-76EA-43B2-B6C7-B11E8B0B3D4D',
+					'Cookie': PD_COOKIES.join('; ')
+				}
+			}).then(function (resp) {
+				// 收集Cookie
+				// R
+				// M
+				var cs = resp.headers._headers['set-cookie'];
+				var cR = cs[0].split(';')[0];
+				var cM = cs[1].split(';')[0];
+				PD_COOKIES.push(cR);
+				PD_COOKIES.push(cM);
+				return resp.json();
+			}).then(function (res) {
+				if (res) {
+					if (res.errno == 0) {
+						resolve(res.data);
+					} else if (res.errno == 1802) {
+						reject('错误过多，稍后再试');
+					} else if (res.errno == 1801) {
+						reject('错误过多被锁定，请明天再试');
+					} else if (res.errno == 1901) {
+						reject('reset 异地登录逻辑');
+					} else if (res.errno == 1016) {
+						reject('用户名或密码错误');
+					} else {
+						reject(res.errmsg);
+					}
+				} else {
+					reject('登录失败');
+				}
+			}).catch(function (err) {
+				return reject(err);
+			});
+		});
+	}
+
+	function login(account, password) {
+		return _AESPassword(password).then(function (pwd) {
+			return 'sign=&pdftsrc=&pdft=&__plat=ios&__guid=CEF91AE5-76EA-43B2-B6C7-B11E8B0B3D4D&psrc=appstore&__version=1.1.2.1218&refer=http%3A%2F%2Fm.panda.tv%2F&account=' + account + '&password=' + encodeURIComponent(pwd) + '&https=1&_=' + +new Date();
+		}).then(function (query) {
+			return _login(query);
 		});
 	}
 
@@ -688,6 +823,12 @@
 
 /***/ },
 /* 8 */
+/***/ function(module, exports) {
+
+	module.exports = require("cookie");
+
+/***/ },
+/* 9 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -721,7 +862,7 @@
 	};
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -794,10 +935,415 @@
 	};
 
 /***/ },
-/* 10 */
+/* 11 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	var CryptoJS = function (e, t) {
+	  var n = {},
+	      r = n.lib = {},
+	      i = function i() {},
+	      s = r.Base = { extend: function extend(e) {
+	      i.prototype = this;var t = new i();return e && t.mixIn(e), t.hasOwnProperty("init") || (t.init = function () {
+	        t.$super.init.apply(this, arguments);
+	      }), t.init.prototype = t, t.$super = this, t;
+	    }, create: function create() {
+	      var e = this.extend();return e.init.apply(e, arguments), e;
+	    }, init: function init() {}, mixIn: function mixIn(e) {
+	      for (var t in e) {
+	        e.hasOwnProperty(t) && (this[t] = e[t]);
+	      }e.hasOwnProperty("toString") && (this.toString = e.toString);
+	    }, clone: function clone() {
+	      return this.init.prototype.extend(this);
+	    } },
+	      o = r.WordArray = s.extend({ init: function init(e, n) {
+	      e = this.words = e || [], this.sigBytes = n != t ? n : 4 * e.length;
+	    }, toString: function toString(e) {
+	      return (e || a).stringify(this);
+	    }, concat: function concat(e) {
+	      var t = this.words,
+	          n = e.words,
+	          r = this.sigBytes;e = e.sigBytes, this.clamp();if (r % 4) for (var i = 0; i < e; i++) {
+	        t[r + i >>> 2] |= (n[i >>> 2] >>> 24 - 8 * (i % 4) & 255) << 24 - 8 * ((r + i) % 4);
+	      } else if (65535 < n.length) for (i = 0; i < e; i += 4) {
+	        t[r + i >>> 2] = n[i >>> 2];
+	      } else t.push.apply(t, n);return this.sigBytes += e, this;
+	    }, clamp: function clamp() {
+	      var t = this.words,
+	          n = this.sigBytes;t[n >>> 2] &= 4294967295 << 32 - 8 * (n % 4), t.length = e.ceil(n / 4);
+	    }, clone: function clone() {
+	      var e = s.clone.call(this);return e.words = this.words.slice(0), e;
+	    }, random: function random(t) {
+	      for (var n = [], r = 0; r < t; r += 4) {
+	        n.push(4294967296 * e.random() | 0);
+	      }return new o.init(n, t);
+	    } }),
+	      u = n.enc = {},
+	      a = u.Hex = { stringify: function stringify(e) {
+	      var t = e.words;e = e.sigBytes;for (var n = [], r = 0; r < e; r++) {
+	        var i = t[r >>> 2] >>> 24 - 8 * (r % 4) & 255;n.push((i >>> 4).toString(16)), n.push((i & 15).toString(16));
+	      }return n.join("");
+	    }, parse: function parse(e) {
+	      for (var t = e.length, n = [], r = 0; r < t; r += 2) {
+	        n[r >>> 3] |= parseInt(e.substr(r, 2), 16) << 24 - 4 * (r % 8);
+	      }return new o.init(n, t / 2);
+	    } },
+	      f = u.Latin1 = { stringify: function stringify(e) {
+	      var t = e.words;e = e.sigBytes;for (var n = [], r = 0; r < e; r++) {
+	        n.push(String.fromCharCode(t[r >>> 2] >>> 24 - 8 * (r % 4) & 255));
+	      }return n.join("");
+	    }, parse: function parse(e) {
+	      for (var t = e.length, n = [], r = 0; r < t; r++) {
+	        n[r >>> 2] |= (e.charCodeAt(r) & 255) << 24 - 8 * (r % 4);
+	      }return new o.init(n, t);
+	    } },
+	      l = u.Utf8 = { stringify: function stringify(e) {
+	      try {
+	        return decodeURIComponent(escape(f.stringify(e)));
+	      } catch (t) {
+	        throw Error("Malformed UTF-8 data");
+	      }
+	    }, parse: function parse(e) {
+	      return f.parse(unescape(encodeURIComponent(e)));
+	    } },
+	      c = r.BufferedBlockAlgorithm = s.extend({ reset: function reset() {
+	      this._data = new o.init(), this._nDataBytes = 0;
+	    }, _append: function _append(e) {
+	      "string" == typeof e && (e = l.parse(e)), this._data.concat(e), this._nDataBytes += e.sigBytes;
+	    }, _process: function _process(t) {
+	      var n = this._data,
+	          r = n.words,
+	          i = n.sigBytes,
+	          s = this.blockSize,
+	          u = i / (4 * s),
+	          u = t ? e.ceil(u) : e.max((u | 0) - this._minBufferSize, 0);t = u * s, i = e.min(4 * t, i);if (t) {
+	        for (var a = 0; a < t; a += s) {
+	          this._doProcessBlock(r, a);
+	        }a = r.splice(0, t), n.sigBytes -= i;
+	      }return new o.init(a, i);
+	    }, clone: function clone() {
+	      var e = s.clone.call(this);return e._data = this._data.clone(), e;
+	    }, _minBufferSize: 0 });r.Hasher = c.extend({ cfg: s.extend(), init: function init(e) {
+	      this.cfg = this.cfg.extend(e), this.reset();
+	    }, reset: function reset() {
+	      c.reset.call(this), this._doReset();
+	    }, update: function update(e) {
+	      return this._append(e), this._process(), this;
+	    }, finalize: function finalize(e) {
+	      return e && this._append(e), this._doFinalize();
+	    }, blockSize: 16, _createHelper: function _createHelper(e) {
+	      return function (t, n) {
+	        return new e.init(n).finalize(t);
+	      };
+	    }, _createHmacHelper: function _createHmacHelper(e) {
+	      return function (t, n) {
+	        return new h.HMAC.init(e, n).finalize(t);
+	      };
+	    } });var h = n.algo = {};return n;
+	}(Math);(function () {
+	  var e = CryptoJS,
+	      t = e.lib.WordArray;e.enc.Base64 = { stringify: function stringify(e) {
+	      var t = e.words,
+	          n = e.sigBytes,
+	          r = this._map;e.clamp(), e = [];for (var i = 0; i < n; i += 3) {
+	        for (var s = (t[i >>> 2] >>> 24 - 8 * (i % 4) & 255) << 16 | (t[i + 1 >>> 2] >>> 24 - 8 * ((i + 1) % 4) & 255) << 8 | t[i + 2 >>> 2] >>> 24 - 8 * ((i + 2) % 4) & 255, o = 0; 4 > o && i + .75 * o < n; o++) {
+	          e.push(r.charAt(s >>> 6 * (3 - o) & 63));
+	        }
+	      }if (t = r.charAt(64)) for (; e.length % 4;) {
+	        e.push(t);
+	      }return e.join("");
+	    }, parse: function parse(e) {
+	      var n = e.length,
+	          r = this._map,
+	          i = r.charAt(64);i && (i = e.indexOf(i), -1 != i && (n = i));for (var i = [], s = 0, o = 0; o < n; o++) {
+	        if (o % 4) {
+	          var u = r.indexOf(e.charAt(o - 1)) << 2 * (o % 4),
+	              a = r.indexOf(e.charAt(o)) >>> 6 - 2 * (o % 4);i[s >>> 2] |= (u | a) << 24 - 8 * (s % 4), s++;
+	        }
+	      }return t.create(i, s);
+	    }, _map: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=" };
+	})(), function (e) {
+	  function t(e, t, n, r, i, s, o) {
+	    return e = e + (t & n | ~t & r) + i + o, (e << s | e >>> 32 - s) + t;
+	  }function n(e, t, n, r, i, s, o) {
+	    return e = e + (t & r | n & ~r) + i + o, (e << s | e >>> 32 - s) + t;
+	  }function r(e, t, n, r, i, s, o) {
+	    return e = e + (t ^ n ^ r) + i + o, (e << s | e >>> 32 - s) + t;
+	  }function i(e, t, n, r, i, s, o) {
+	    return e = e + (n ^ (t | ~r)) + i + o, (e << s | e >>> 32 - s) + t;
+	  }for (var s = CryptoJS, o = s.lib, u = o.WordArray, a = o.Hasher, o = s.algo, f = [], l = 0; 64 > l; l++) {
+	    f[l] = 4294967296 * e.abs(e.sin(l + 1)) | 0;
+	  }o = o.MD5 = a.extend({ _doReset: function _doReset() {
+	      this._hash = new u.init([1732584193, 4023233417, 2562383102, 271733878]);
+	    }, _doProcessBlock: function _doProcessBlock(e, s) {
+	      for (var o = 0; 16 > o; o++) {
+	        var u = s + o,
+	            a = e[u];e[u] = (a << 8 | a >>> 24) & 16711935 | (a << 24 | a >>> 8) & 4278255360;
+	      }var o = this._hash.words,
+	          u = e[s + 0],
+	          a = e[s + 1],
+	          l = e[s + 2],
+	          c = e[s + 3],
+	          h = e[s + 4],
+	          v = e[s + 5],
+	          m = e[s + 6],
+	          g = e[s + 7],
+	          y = e[s + 8],
+	          w = e[s + 9],
+	          E = e[s + 10],
+	          S = e[s + 11],
+	          x = e[s + 12],
+	          T = e[s + 13],
+	          N = e[s + 14],
+	          C = e[s + 15],
+	          k = o[0],
+	          L = o[1],
+	          A = o[2],
+	          O = o[3],
+	          k = t(k, L, A, O, u, 7, f[0]),
+	          O = t(O, k, L, A, a, 12, f[1]),
+	          A = t(A, O, k, L, l, 17, f[2]),
+	          L = t(L, A, O, k, c, 22, f[3]),
+	          k = t(k, L, A, O, h, 7, f[4]),
+	          O = t(O, k, L, A, v, 12, f[5]),
+	          A = t(A, O, k, L, m, 17, f[6]),
+	          L = t(L, A, O, k, g, 22, f[7]),
+	          k = t(k, L, A, O, y, 7, f[8]),
+	          O = t(O, k, L, A, w, 12, f[9]),
+	          A = t(A, O, k, L, E, 17, f[10]),
+	          L = t(L, A, O, k, S, 22, f[11]),
+	          k = t(k, L, A, O, x, 7, f[12]),
+	          O = t(O, k, L, A, T, 12, f[13]),
+	          A = t(A, O, k, L, N, 17, f[14]),
+	          L = t(L, A, O, k, C, 22, f[15]),
+	          k = n(k, L, A, O, a, 5, f[16]),
+	          O = n(O, k, L, A, m, 9, f[17]),
+	          A = n(A, O, k, L, S, 14, f[18]),
+	          L = n(L, A, O, k, u, 20, f[19]),
+	          k = n(k, L, A, O, v, 5, f[20]),
+	          O = n(O, k, L, A, E, 9, f[21]),
+	          A = n(A, O, k, L, C, 14, f[22]),
+	          L = n(L, A, O, k, h, 20, f[23]),
+	          k = n(k, L, A, O, w, 5, f[24]),
+	          O = n(O, k, L, A, N, 9, f[25]),
+	          A = n(A, O, k, L, c, 14, f[26]),
+	          L = n(L, A, O, k, y, 20, f[27]),
+	          k = n(k, L, A, O, T, 5, f[28]),
+	          O = n(O, k, L, A, l, 9, f[29]),
+	          A = n(A, O, k, L, g, 14, f[30]),
+	          L = n(L, A, O, k, x, 20, f[31]),
+	          k = r(k, L, A, O, v, 4, f[32]),
+	          O = r(O, k, L, A, y, 11, f[33]),
+	          A = r(A, O, k, L, S, 16, f[34]),
+	          L = r(L, A, O, k, N, 23, f[35]),
+	          k = r(k, L, A, O, a, 4, f[36]),
+	          O = r(O, k, L, A, h, 11, f[37]),
+	          A = r(A, O, k, L, g, 16, f[38]),
+	          L = r(L, A, O, k, E, 23, f[39]),
+	          k = r(k, L, A, O, T, 4, f[40]),
+	          O = r(O, k, L, A, u, 11, f[41]),
+	          A = r(A, O, k, L, c, 16, f[42]),
+	          L = r(L, A, O, k, m, 23, f[43]),
+	          k = r(k, L, A, O, w, 4, f[44]),
+	          O = r(O, k, L, A, x, 11, f[45]),
+	          A = r(A, O, k, L, C, 16, f[46]),
+	          L = r(L, A, O, k, l, 23, f[47]),
+	          k = i(k, L, A, O, u, 6, f[48]),
+	          O = i(O, k, L, A, g, 10, f[49]),
+	          A = i(A, O, k, L, N, 15, f[50]),
+	          L = i(L, A, O, k, v, 21, f[51]),
+	          k = i(k, L, A, O, x, 6, f[52]),
+	          O = i(O, k, L, A, c, 10, f[53]),
+	          A = i(A, O, k, L, E, 15, f[54]),
+	          L = i(L, A, O, k, a, 21, f[55]),
+	          k = i(k, L, A, O, y, 6, f[56]),
+	          O = i(O, k, L, A, C, 10, f[57]),
+	          A = i(A, O, k, L, m, 15, f[58]),
+	          L = i(L, A, O, k, T, 21, f[59]),
+	          k = i(k, L, A, O, h, 6, f[60]),
+	          O = i(O, k, L, A, S, 10, f[61]),
+	          A = i(A, O, k, L, l, 15, f[62]),
+	          L = i(L, A, O, k, w, 21, f[63]);o[0] = o[0] + k | 0, o[1] = o[1] + L | 0, o[2] = o[2] + A | 0, o[3] = o[3] + O | 0;
+	    }, _doFinalize: function _doFinalize() {
+	      var t = this._data,
+	          n = t.words,
+	          r = 8 * this._nDataBytes,
+	          i = 8 * t.sigBytes;n[i >>> 5] |= 128 << 24 - i % 32;var s = e.floor(r / 4294967296);n[(i + 64 >>> 9 << 4) + 15] = (s << 8 | s >>> 24) & 16711935 | (s << 24 | s >>> 8) & 4278255360, n[(i + 64 >>> 9 << 4) + 14] = (r << 8 | r >>> 24) & 16711935 | (r << 24 | r >>> 8) & 4278255360, t.sigBytes = 4 * (n.length + 1), this._process(), t = this._hash, n = t.words;for (r = 0; 4 > r; r++) {
+	        i = n[r], n[r] = (i << 8 | i >>> 24) & 16711935 | (i << 24 | i >>> 8) & 4278255360;
+	      }return t;
+	    }, clone: function clone() {
+	      var e = a.clone.call(this);return e._hash = this._hash.clone(), e;
+	    } }), s.MD5 = a._createHelper(o), s.HmacMD5 = a._createHmacHelper(o);
+	}(Math), function () {
+	  var e = CryptoJS,
+	      t = e.lib,
+	      n = t.Base,
+	      r = t.WordArray,
+	      t = e.algo,
+	      i = t.EvpKDF = n.extend({ cfg: n.extend({ keySize: 4, hasher: t.MD5, iterations: 1 }), init: function init(e) {
+	      this.cfg = this.cfg.extend(e);
+	    }, compute: function compute(e, t) {
+	      for (var n = this.cfg, i = n.hasher.create(), s = r.create(), o = s.words, u = n.keySize, n = n.iterations; o.length < u;) {
+	        a && i.update(a);var a = i.update(e).finalize(t);i.reset();for (var f = 1; f < n; f++) {
+	          a = i.finalize(a), i.reset();
+	        }s.concat(a);
+	      }return s.sigBytes = 4 * u, s;
+	    } });e.EvpKDF = function (e, t, n) {
+	    return i.create(n).compute(e, t);
+	  };
+	}(), CryptoJS.lib.Cipher || function (e) {
+	  var t = CryptoJS,
+	      n = t.lib,
+	      r = n.Base,
+	      i = n.WordArray,
+	      s = n.BufferedBlockAlgorithm,
+	      o = t.enc.Base64,
+	      u = t.algo.EvpKDF,
+	      a = n.Cipher = s.extend({ cfg: r.extend(), createEncryptor: function createEncryptor(e, t) {
+	      return this.create(this._ENC_XFORM_MODE, e, t);
+	    }, createDecryptor: function createDecryptor(e, t) {
+	      return this.create(this._DEC_XFORM_MODE, e, t);
+	    }, init: function init(e, t, n) {
+	      this.cfg = this.cfg.extend(n), this._xformMode = e, this._key = t, this.reset();
+	    }, reset: function reset() {
+	      s.reset.call(this), this._doReset();
+	    }, process: function process(e) {
+	      return this._append(e), this._process();
+	    }, finalize: function finalize(e) {
+	      return e && this._append(e), this._doFinalize();
+	    }, keySize: 4, ivSize: 4, _ENC_XFORM_MODE: 1, _DEC_XFORM_MODE: 2, _createHelper: function _createHelper(e) {
+	      return { encrypt: function encrypt(t, n, r) {
+	          return ("string" == typeof n ? d : p).encrypt(e, t, n, r);
+	        }, decrypt: function decrypt(t, n, r) {
+	          return ("string" == typeof n ? d : p).decrypt(e, t, n, r);
+	        } };
+	    } });n.StreamCipher = a.extend({ _doFinalize: function _doFinalize() {
+	      return this._process(!0);
+	    }, blockSize: 1 });var f = t.mode = {},
+	      l = function l(t, n, r) {
+	    var i = this._iv;i ? this._iv = e : i = this._prevBlock;for (var s = 0; s < r; s++) {
+	      t[n + s] ^= i[s];
+	    }
+	  },
+	      c = (n.BlockCipherMode = r.extend({ createEncryptor: function createEncryptor(e, t) {
+	      return this.Encryptor.create(e, t);
+	    }, createDecryptor: function createDecryptor(e, t) {
+	      return this.Decryptor.create(e, t);
+	    }, init: function init(e, t) {
+	      this._cipher = e, this._iv = t;
+	    } })).extend();c.Encryptor = c.extend({ processBlock: function processBlock(e, t) {
+	      var n = this._cipher,
+	          r = n.blockSize;l.call(this, e, t, r), n.encryptBlock(e, t), this._prevBlock = e.slice(t, t + r);
+	    } }), c.Decryptor = c.extend({ processBlock: function processBlock(e, t) {
+	      var n = this._cipher,
+	          r = n.blockSize,
+	          i = e.slice(t, t + r);n.decryptBlock(e, t), l.call(this, e, t, r), this._prevBlock = i;
+	    } }), f = f.CBC = c, c = (t.pad = {}).Pkcs7 = { pad: function pad(e, t) {
+	      for (var n = 4 * t, n = n - e.sigBytes % n, r = n << 24 | n << 16 | n << 8 | n, s = [], o = 0; o < n; o += 4) {
+	        s.push(r);
+	      }n = i.create(s, n), e.concat(n);
+	    }, unpad: function unpad(e) {
+	      e.sigBytes -= e.words[e.sigBytes - 1 >>> 2] & 255;
+	    } }, n.BlockCipher = a.extend({ cfg: a.cfg.extend({ mode: f, padding: c }), reset: function reset() {
+	      a.reset.call(this);var e = this.cfg,
+	          t = e.iv,
+	          e = e.mode;if (this._xformMode == this._ENC_XFORM_MODE) var n = e.createEncryptor;else n = e.createDecryptor, this._minBufferSize = 1;this._mode = n.call(e, this, t && t.words);
+	    }, _doProcessBlock: function _doProcessBlock(e, t) {
+	      this._mode.processBlock(e, t);
+	    }, _doFinalize: function _doFinalize() {
+	      var e = this.cfg.padding;if (this._xformMode == this._ENC_XFORM_MODE) {
+	        e.pad(this._data, this.blockSize);var t = this._process(!0);
+	      } else t = this._process(!0), e.unpad(t);return t;
+	    }, blockSize: 4 });var h = n.CipherParams = r.extend({ init: function init(e) {
+	      this.mixIn(e);
+	    }, toString: function toString(e) {
+	      return (e || this.formatter).stringify(this);
+	    } }),
+	      f = (t.format = {}).OpenSSL = { stringify: function stringify(e) {
+	      var t = e.ciphertext;return e = e.salt, (e ? i.create([1398893684, 1701076831]).concat(e).concat(t) : t).toString(o);
+	    }, parse: function parse(e) {
+	      e = o.parse(e);var t = e.words;if (1398893684 == t[0] && 1701076831 == t[1]) {
+	        var n = i.create(t.slice(2, 4));t.splice(0, 4), e.sigBytes -= 16;
+	      }return h.create({ ciphertext: e, salt: n });
+	    } },
+	      p = n.SerializableCipher = r.extend({ cfg: r.extend({ format: f }), encrypt: function encrypt(e, t, n, r) {
+	      r = this.cfg.extend(r);var i = e.createEncryptor(n, r);return t = i.finalize(t), i = i.cfg, h.create({ ciphertext: t, key: n, iv: i.iv, algorithm: e, mode: i.mode, padding: i.padding, blockSize: e.blockSize, formatter: r.format });
+	    }, decrypt: function decrypt(e, t, n, r) {
+	      return r = this.cfg.extend(r), t = this._parse(t, r.format), e.createDecryptor(n, r).finalize(t.ciphertext);
+	    }, _parse: function _parse(e, t) {
+	      return "string" == typeof e ? t.parse(e, this) : e;
+	    } }),
+	      t = (t.kdf = {}).OpenSSL = { execute: function execute(e, t, n, r) {
+	      return r || (r = i.random(8)), e = u.create({ keySize: t + n }).compute(e, r), n = i.create(e.words.slice(t), 4 * n), e.sigBytes = 4 * t, h.create({ key: e, iv: n, salt: r });
+	    } },
+	      d = n.PasswordBasedCipher = p.extend({ cfg: p.cfg.extend({ kdf: t }), encrypt: function encrypt(e, t, n, r) {
+	      return r = this.cfg.extend(r), n = r.kdf.execute(n, e.keySize, e.ivSize), r.iv = n.iv, e = p.encrypt.call(this, e, t, n.key, r), e.mixIn(n), e;
+	    }, decrypt: function decrypt(e, t, n, r) {
+	      return r = this.cfg.extend(r), t = this._parse(t, r.format), n = r.kdf.execute(n, e.keySize, e.ivSize, t.salt), r.iv = n.iv, p.decrypt.call(this, e, t, n.key, r);
+	    } });
+	}(), function () {
+	  for (var e = CryptoJS, t = e.lib.BlockCipher, n = e.algo, r = [], i = [], s = [], o = [], u = [], a = [], f = [], l = [], c = [], h = [], p = [], d = 0; 256 > d; d++) {
+	    p[d] = 128 > d ? d << 1 : d << 1 ^ 283;
+	  }for (var v = 0, m = 0, d = 0; 256 > d; d++) {
+	    var g = m ^ m << 1 ^ m << 2 ^ m << 3 ^ m << 4,
+	        g = g >>> 8 ^ g & 255 ^ 99;r[v] = g, i[g] = v;var y = p[v],
+	        b = p[y],
+	        w = p[b],
+	        E = 257 * p[g] ^ 16843008 * g;s[v] = E << 24 | E >>> 8, o[v] = E << 16 | E >>> 16, u[v] = E << 8 | E >>> 24, a[v] = E, E = 16843009 * w ^ 65537 * b ^ 257 * y ^ 16843008 * v, f[g] = E << 24 | E >>> 8, l[g] = E << 16 | E >>> 16, c[g] = E << 8 | E >>> 24, h[g] = E, v ? (v = y ^ p[p[p[w ^ y]]], m ^= p[p[m]]) : v = m = 1;
+	  }var S = [0, 1, 2, 4, 8, 16, 32, 64, 128, 27, 54],
+	      n = n.AES = t.extend({ _doReset: function _doReset() {
+	      for (var e = this._key, t = e.words, n = e.sigBytes / 4, e = 4 * ((this._nRounds = n + 6) + 1), i = this._keySchedule = [], s = 0; s < e; s++) {
+	        if (s < n) i[s] = t[s];else {
+	          var o = i[s - 1];s % n ? 6 < n && 4 == s % n && (o = r[o >>> 24] << 24 | r[o >>> 16 & 255] << 16 | r[o >>> 8 & 255] << 8 | r[o & 255]) : (o = o << 8 | o >>> 24, o = r[o >>> 24] << 24 | r[o >>> 16 & 255] << 16 | r[o >>> 8 & 255] << 8 | r[o & 255], o ^= S[s / n | 0] << 24), i[s] = i[s - n] ^ o;
+	        }
+	      }t = this._invKeySchedule = [];for (n = 0; n < e; n++) {
+	        s = e - n, o = n % 4 ? i[s] : i[s - 4], t[n] = 4 > n || 4 >= s ? o : f[r[o >>> 24]] ^ l[r[o >>> 16 & 255]] ^ c[r[o >>> 8 & 255]] ^ h[r[o & 255]];
+	      }
+	    }, encryptBlock: function encryptBlock(e, t) {
+	      this._doCryptBlock(e, t, this._keySchedule, s, o, u, a, r);
+	    }, decryptBlock: function decryptBlock(e, t) {
+	      var n = e[t + 1];e[t + 1] = e[t + 3], e[t + 3] = n, this._doCryptBlock(e, t, this._invKeySchedule, f, l, c, h, i), n = e[t + 1], e[t + 1] = e[t + 3], e[t + 3] = n;
+	    }, _doCryptBlock: function _doCryptBlock(e, t, n, r, i, s, o, u) {
+	      for (var a = this._nRounds, f = e[t] ^ n[0], l = e[t + 1] ^ n[1], c = e[t + 2] ^ n[2], h = e[t + 3] ^ n[3], p = 4, d = 1; d < a; d++) {
+	        var v = r[f >>> 24] ^ i[l >>> 16 & 255] ^ s[c >>> 8 & 255] ^ o[h & 255] ^ n[p++],
+	            m = r[l >>> 24] ^ i[c >>> 16 & 255] ^ s[h >>> 8 & 255] ^ o[f & 255] ^ n[p++],
+	            g = r[c >>> 24] ^ i[h >>> 16 & 255] ^ s[f >>> 8 & 255] ^ o[l & 255] ^ n[p++],
+	            h = r[h >>> 24] ^ i[f >>> 16 & 255] ^ s[l >>> 8 & 255] ^ o[c & 255] ^ n[p++],
+	            f = v,
+	            l = m,
+	            c = g;
+	      }v = (u[f >>> 24] << 24 | u[l >>> 16 & 255] << 16 | u[c >>> 8 & 255] << 8 | u[h & 255]) ^ n[p++], m = (u[l >>> 24] << 24 | u[c >>> 16 & 255] << 16 | u[h >>> 8 & 255] << 8 | u[f & 255]) ^ n[p++], g = (u[c >>> 24] << 24 | u[h >>> 16 & 255] << 16 | u[f >>> 8 & 255] << 8 | u[l & 255]) ^ n[p++], h = (u[h >>> 24] << 24 | u[f >>> 16 & 255] << 16 | u[l >>> 8 & 255] << 8 | u[c & 255]) ^ n[p++], e[t] = v, e[t + 1] = m, e[t + 2] = g, e[t + 3] = h;
+	    }, keySize: 8 });e.AES = t._createHelper(n);
+	}(), CryptoJS.pad.ZeroPadding = { pad: function pad(e, t) {
+	    var n = t * 4;e.clamp(), e.sigBytes += n - (e.sigBytes % n || n);
+	  }, unpad: function unpad(e) {
+	    var t = e.words,
+	        n = e.sigBytes - 1;while (!(t[n >>> 2] >>> 24 - n % 4 * 8 & 255)) {
+	      n--;
+	    }e.sigBytes = n + 1;
+	  } };
+	module.exports = CryptoJS;
+
+/***/ },
+/* 12 */
 /***/ function(module, exports) {
 
 	module.exports = require("bluebird");
+
+/***/ },
+/* 13 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	exports.default = {
+		account: '15677997914',
+		password: 'zxcasdqwe123'
+	};
 
 /***/ }
 /******/ ]);

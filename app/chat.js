@@ -1,5 +1,6 @@
 import fetch from 'node-fetch';
 import net from 'net';
+import cookie from 'cookie';
 
 import userType from './constant/userType';
 import messageType from './constant/messageType';
@@ -7,9 +8,19 @@ import GiftType from './constant/giftType';
 
 import * as thankUtils from './thankUtils';
 
+import CryptoJS from './CryptoJS';
+
 import Promise from 'bluebird';
 
-const cookie = 'M=t%3D1473337056%26v%3D1.0%26mt%3D1473337056%26s%3Dafad0b743d36b4b20e87cf6e8f65ad72; R=r%3D32710864%26u%3DCnaqnGi32710864%26n%3D%25R4%25O8%25N4%25R4%25O8%25NN%25R4%25O8%25NQ%25R6%2596%2587%26le%3DMJI2MJ1yWGDjZGV2YzAioD%3D%3D%26m%3DZGH2Amp5BGp5ZGD%3D%26im%3DnUE0pPHmDFHlEvHlEzx3YaOxnJ0hM3ZyZxLmAwD0BJD2AQAuZJL5MGR2ZmDkZwOwBGAyAJZ4MJSyZv5jozp%3D';
+let PD_COOKIES = [];
+
+const headers = {
+	'Accept-Language': 'zh-Hans-CN;q=1, en-CN;q=0.9, zh-Hant-CN;q=0.8, ja-JP;q=0.7',
+	'Accept': '*/*',
+	'Connection': 'keep-alive',
+	'Accept-Encoding': 'gzip, deflate',
+	'User-Agent': 'PandaTV-ios/1.1.2 (iPhone; iOS 9.3.5; Scale/3.00)'
+};
 
 /**
  * 获取聊天服务器信息
@@ -348,16 +359,23 @@ export function heartBeat(params, second) {
 }
 
 export function sendMsg(msg, roomId, sign) {
+	console.log(Object.assign(headers, {
+			'Host': 'api.m.panda.tv',
+			// Cookie: PD_COOKIES.join('; '),
+			'Cookie': 'R=r%3D32710864%26u%3DCnaqnGi32710864%26n%3D%25R4%25O8%25N4%25R4%25O8%25NN%25R4%25O8%25NQ%25R6%2596%2587%26le%3DMJI2MJ1yWGDjZGV2YzAioD%3D%3D%26m%3DZGH2Amp5BGp5ZGD%3D%26im%3DnUE0pPHmDFHlEvHlEzx3YaOxnJ0hM3ZyZxLmAwD0BJD2AQAuZJL5MGR2ZmDkZwOwBGAyAJZ4MJSyZv5jozp%3D; M=t%3D1474441163%26v%3D1.0%26mt%3D1474441163%26s%3D57d3ea249914c91aaedaaafce60e0fff;',
+			'xiaozhangdepandatv': 1,
+			'Content-Type': 'application/x-www-form-urlencoded'
+		}));
 	fetch('http://api.m.panda.tv/ajax_send_group_msg',{
 		method: 'POST',
-		headers: {
+		headers: Object.assign(headers, {
 			'Host': 'api.m.panda.tv',
-			'Accept': '*/*',
-			'User-Agent': 'PandaTV-ios/1.1.2 (iPhone; iOS 9.3.5; Scale/3.00)',
-			'xiaozhangdepandatv': '1',
-			'Cookie': cookie
-		},
-		body: `__channel=appstore&__plat=ios&__version=1.1.2.1218&content=${msg}&pt_sign=${sign}&pt_time=1474343949&roomid=${roomId}&type=1`
+			// Cookie: PD_COOKIES.join('; '),
+			'Cookie': 'R=r%3D32710864%26u%3DCnaqnGi32710864%26n%3D%25R4%25O8%25N4%25R4%25O8%25NN%25R4%25O8%25NQ%25R6%2596%2587%26le%3DMJI2MJ1yWGDjZGV2YzAioD%3D%3D%26m%3DZGH2Amp5BGp5ZGD%3D%26im%3DnUE0pPHmDFHlEvHlEzx3YaOxnJ0hM3ZyZxLmAwD0BJD2AQAuZJL5MGR2ZmDkZwOwBGAyAJZ4MJSyZv5jozp%3D; M=t%3D1474441163%26v%3D1.0%26mt%3D1474441163%26s%3D57d3ea249914c91aaedaaafce60e0fff;',
+			'xiaozhangdepandatv': 1,
+			'Content-Type': 'application/x-www-form-urlencoded'
+		}),
+		body: `__channel=appstore&__plat=ios&__version=1.1.2.1218&content=${msg}&pt_sign=${sign}&pt_time=1474423296&roomid=${roomId}&type=1`
 	})
 	.then(resp => {
 		return resp.json();
@@ -371,16 +389,110 @@ export function sendMsg(msg, roomId, sign) {
 	});
 }
 
-export function login() {
-	return fetch('http://api.m.panda.tv/ajax_get_token_and_login?__channel=appstore&__plat=ios&__version=1.1.2.1218&pt_sign=7dfa5055a28eb0813debd699f56778d5&pt_time=1474337963&authseq=E72412EF-95BB-4B6E-A527-27EB7A531331', {
-		headers: {
-			'Cookie': cookie
-		}
+/**
+ * 登录并获取发送弹幕的token
+ * @return {[type]} [description]
+ */
+export function getTokenAndLogin(){
+	// `http://api.m.panda.tv/ajax_get_token_and_login?__version=1.1.2.1218&__plat=ios&__channel=appstore&authseq=8ED353E2-3728-48DF-B70D-B1F36B9DDCF0`
+	return fetch(`http://api.m.panda.tv/ajax_get_token?__version=1.1.2.1218&__plat=ios&__channel=appstore`, {
+		headers: Object.assign(headers, {
+			Cookie: PD_COOKIES.join('; '),
+			xiaozhangdepandatv: 1
+		})
 	})
-	.then(resp => {
-		return resp.json();
+	.then(resp => resp.json())
+	.then(res => res.data);
+}
+
+export function getTokenAndLogin2(){
+	return fetch(`http://api.m.panda.tv/ajax_get_token_and_login?__version=1.1.2.1218&__plat=ios&__channel=appstore&authseq=AA43B606-0287-41E6-AFBD-569BA66A92D8`,{
+		headers: headers
 	})
-	.then(res => {
-		return res.data;
+
+}
+
+/**
+ * 获取加密密码
+ * @param  {[type]} password [description]
+ * @return {[type]}          [description]
+ */
+
+function _AESPassword(password){
+	return new Promise((resolve, reject) => {
+		fetch('https://u.panda.tv/ajax_aeskey')
+		.then(resp => {
+			// 收集Cookie
+			// SESSCYPHP
+			const cs = resp.headers.get('Set-Cookie');
+			PD_COOKIES.push(cs.split(';')[0]);
+			return resp.json();
+		})
+		.then(res => {
+			if(res && res.errno == 0 && res.data) {
+				const key = CryptoJS.enc.Utf8.parse(res.data);
+				const iv = CryptoJS.enc.Utf8.parse("995d1b5ebbac3761");
+				const pwd = CryptoJS.AES.encrypt(password, key, {
+					iv: iv,
+					mode: CryptoJS.mode.CBC,
+					padding: CryptoJS.pad.ZeroPadding
+				}).toString();
+				resolve(pwd);
+			} else {
+				reject('获取AES KEY失败');
+			}
+		})
+		.catch(err => reject(err));
 	});
+}
+
+function _login(query){
+	return new Promise((resolve, reject) => {
+		const url = `https://u.panda.tv/ajax_login?${query}`;
+		fetch(url,{
+			headers: {
+				'Host': 'api.m.panda.tv',
+				'Origin': 'https://m.panda.tv',
+				'Referer': 'https://m.panda.tv/login.html?__plat=ios&__version=1.1.2.1218&__channel=appstore&__guid=CEF91AE5-76EA-43B2-B6C7-B11E8B0B3D4D',
+				'Cookie': PD_COOKIES.join('; ')
+			}
+		})
+			.then(resp => {
+				// 收集Cookie
+				// R
+				// M
+				const cs = resp.headers._headers['set-cookie'];
+				const cR = cs[0].split(';')[0];
+				const cM = cs[1].split(';')[0];
+				PD_COOKIES.push(cR);
+				PD_COOKIES.push(cM);
+				return resp.json();
+			})
+			.then(res => {
+				if(res){
+					if(res.errno == 0){
+						resolve(res.data);
+					}else if(res.errno == 1802){
+	          reject('错误过多，稍后再试');
+	        }else if(res.errno == 1801){
+	          reject('错误过多被锁定，请明天再试');
+	        }else if(res.errno == 1901){
+	        	reject('reset 异地登录逻辑');
+	        }else if(res.errno == 1016){
+	          reject('用户名或密码错误');
+	        }else{
+	          reject(res.errmsg);
+	        }
+				} else {
+					reject('登录失败');
+				}
+			})
+			.catch(err => reject(err));
+	});
+}
+
+export function login(account, password) {
+	return _AESPassword(password)
+	.then(pwd => `sign=&pdftsrc=&pdft=&__plat=ios&__guid=CEF91AE5-76EA-43B2-B6C7-B11E8B0B3D4D&psrc=appstore&__version=1.1.2.1218&refer=http%3A%2F%2Fm.panda.tv%2F&account=${account}&password=${encodeURIComponent(pwd)}&https=1&_=${+new Date()}`)
+	.then(query => _login(query));
 }
