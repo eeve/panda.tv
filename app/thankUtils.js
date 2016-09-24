@@ -1,14 +1,16 @@
 import thankQueue from './thankQueue';
 import GiftType from './constant/giftType';
+import Msg from './msg';
 
 /**
  * 收到礼物时，添加到感谢队列
  * @param  {[type]} addThankItem [description]
  * @return {[type]}              [description]
  */
-export function addThankItem(messageModel, giftType, count) {
+export function addThankItem(messageModel, giftType, count, combo) {
 	const from = messageModel.from;
-	thankQueue.addItem(from.rid,{
+
+	thankQueue[combo && combo > 1 ? 'setItem' : 'addItem'](from.rid,{
 		giftType: giftType,
 		nickName: from.nickName,
 		count: count
@@ -53,8 +55,11 @@ export function buildAllThankMsg() {
 	const items = thankQueue.nextAll();
 	let msg = '';
 	for (var i = 0; i < items.length; i++) {
+		if(msg.length > 30) {
+			break;
+		}
 		let item = items[i];
 		msg += buildThankMsg(item);
 	}
-	return msg ? msg : null;
+	return msg ? msg + Msg() : null;
 }

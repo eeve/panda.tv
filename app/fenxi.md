@@ -1,5 +1,0 @@
-M=t=1474439622&v=1.0&mt=1474439622&s=59d77fcb848ee2f19e571f559ec608d8;
-R=r=32710864&u=CnaqnGi32710864&n=%R4%O8%N4%R4%O8%NN%R4%O8%NQ%R6%96%87&le=MJI2MJ1yWGDjZGV2YzAioD==&m=ZGH2Amp5BGp5ZGD=&im=nUE0pPHmDFHlEvHlEzx3YaOxnJ0hM3ZyZxLmAwD0BJD2AQAuZJL5MGR2ZmDkZwOwBGAyAJZ4MJSyZv5jozp=
-
-
-curl -H 'Host: api.m.panda.tv' -H 'Cookie: M=t%3D1474439622%26v%3D1.0%26mt%3D1474439622%26s%3D59d77fcb848ee2f19e571f559ec608d8; R=r%3D32710864%26u%3DCnaqnGi32710864%26n%3D%25R4%25O8%25N4%25R4%25O8%25NN%25R4%25O8%25NQ%25R6%2596%2587%26le%3DMJI2MJ1yWGDjZGV2YzAioD%3D%3D%26m%3DZGH2Amp5BGp5ZGD%3D%26im%3DnUE0pPHmDFHlEvHlEzx3YaOxnJ0hM3ZyZxLmAwD0BJD2AQAuZJL5MGR2ZmDkZwOwBGAyAJZ4MJSyZv5jozp%3D' -H 'Accept: */*' -H 'User-Agent: PandaTV-ios/1.1.2 (iPhone; iOS 9.3.5; Scale/3.00)' -H 'xiaozhangdepandatv: 1' -H 'Accept-Language: zh-Hans-CN;q=1, en-CN;q=0.9, zh-Hant-CN;q=0.8, ja-JP;q=0.7' --data "__channel=appstore&__plat=ios&__version=1.1.2.1218&content=666&pt_sign=613ee176f75d0f377739ef4dfc8889b3&pt_time=1474447727&roomid=485118&type=1" --compressed 'http://api.m.panda.tv/ajax_send_group_msg'

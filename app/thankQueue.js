@@ -12,6 +12,12 @@ let Queue = {};
 
 export default {
 	addItem: function(id, item){
+		this._addItem(id, item);
+	},
+	setItem: function(id, item){
+		this._addItem(id, item, true);
+	},
+	_addItem: function(id, item, reset) {
 		let obj = Queue[id];
 		if(!obj) {
 			obj = {
@@ -24,7 +30,7 @@ export default {
 			if(!count) {
 				obj[item.giftType] = parseInt(item.count);
 			} else {
-				obj[item.giftType] = parseInt(count) + parseInt(item.count);
+				obj[item.giftType] = reset === true? count : parseInt(count) + parseInt(item.count);
 			}
 			Queue[id] = obj;
 		}

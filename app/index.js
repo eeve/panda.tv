@@ -14,6 +14,7 @@ import fetch from 'node-fetch';
 // 一万八 403249
 // 刘从心 392132
 // 洪湖小肖 337852
+
 const roomId = 337852;
 
 Chat.login(config.account, config.password)
@@ -25,24 +26,23 @@ Chat.login(config.account, config.password)
 			.then(Chat.heartBeat)
 			.then(Chat.getTokenAndLogin)
 			.then((data) => {
-				console.log('发送弹幕的token: ', data.token);
-				data.token = 'd02927c0bd83bfac5c2a00e6414f1796';
+				console.log(`发送弹幕的token: ${data.token}, time: ${data.time}`);
 				// 开启感谢模式
 				let second = 0;
 				setInterval(() => {
 					// 获取感谢语句
 					const msg = thankUtils.buildAllThankMsg();
 					if(msg) {
-						Chat.sendMsg(msg, roomId, data.token);
+						Chat.sendMsg(msg, roomId, data.token, data.time);
 						console.log(`待播报礼物人数：${Object.keys(thankQueue.all()).length}`);
 					} else {
-						second++;
-						if(second > 3){
-							Chat.sendMsg('6666666', roomId, data.token);
-							second = 0;
-						}
+						// second++;
+						// if(second > 3){
+						// 	Chat.sendMsg('6666666', roomId, data.token, data.time);
+						// 	second = 0;
+						// }
 					}
-				}, 3000);
+				}, 5000);
 			});
 	})
 	.catch(e => {

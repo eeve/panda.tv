@@ -72,12 +72,14 @@ export function connect(serverInfo) {
 		console.log('connect success');
 	});
 
-	var msg = 'u:' + serverInfo['rid']
-		             + '@' + serverInfo['appid']
-		             + '\nk:1\nt:300\nts:' + serverInfo['ts']
-		             + '\nsign:' + serverInfo['sign']
-		             + '\nauthtype:' + serverInfo['authtype'];
-
+ 	const msg = [
+ 		`u:${serverInfo.rid}@${serverInfo.appid}`,
+ 		`k:1`,
+ 		`t:300`,
+ 		`ts:${serverInfo.ts}`,
+ 		`sign:${serverInfo.sign}`,
+ 		`authtype:${serverInfo.authtype}`].join('\n');
+	console.log(msg);
   _sendData(socket, msg);
 
 	return Promise.resolve({
@@ -163,17 +165,17 @@ function _formatMsg(msg) {
 			//         price: '2' } } }
 			const price = content.price;
 			if(price / 2 === 1){
-				thankUtils.addThankItem(model, GiftType.FANTUAN, 1);
+				thankUtils.addThankItem(model, GiftType.FANTUAN, 1, content.combo);
 				console.log(`*******\t${nickName}送给主播[1]个饭团\t*******`.cyan);
 			}else if(price / 50 === 1){
 				console.log(msg);
-				thankUtils.addThankItem(model, GiftType.KAOYU, 1);
+				thankUtils.addThankItem(model, GiftType.KAOYU, 1, content.combo);
 				console.log(`*******\t${nickName}送给主播[1]个烤鱼\t*******`.cyan);
 			}else if(price / 1000 === 1){
-				thankUtils.addThankItem(model, GiftType.LONGXIA, 1);
+				thankUtils.addThankItem(model, GiftType.LONGXIA, 1, content.combo);
 				console.log(`*******\t${nickName}送给主播[1]个龙虾\t*******`.cyan);
 			}else if(price / 10000 === 1){
-				thankUtils.addThankItem(model, GiftType.FOTIAOQIANG, 1);
+				thankUtils.addThankItem(model, GiftType.FOTIAOQIANG, 1, content.combo);
 				console.log(`*******\t${nickName}送给主播[1]个佛跳墙\t*******`.cyan);
 			}
 			// thank(roomId, nickName, 0, '饭团' );
@@ -358,24 +360,15 @@ export function heartBeat(params, second) {
 	return Promise.resolve(params);
 }
 
-export function sendMsg(msg, roomId, sign) {
-	console.log(Object.assign(headers, {
-			'Host': 'api.m.panda.tv',
-			// Cookie: PD_COOKIES.join('; '),
-			'Cookie': 'R=r%3D32710864%26u%3DCnaqnGi32710864%26n%3D%25R4%25O8%25N4%25R4%25O8%25NN%25R4%25O8%25NQ%25R6%2596%2587%26le%3DMJI2MJ1yWGDjZGV2YzAioD%3D%3D%26m%3DZGH2Amp5BGp5ZGD%3D%26im%3DnUE0pPHmDFHlEvHlEzx3YaOxnJ0hM3ZyZxLmAwD0BJD2AQAuZJL5MGR2ZmDkZwOwBGAyAJZ4MJSyZv5jozp%3D; M=t%3D1474441163%26v%3D1.0%26mt%3D1474441163%26s%3D57d3ea249914c91aaedaaafce60e0fff;',
-			'xiaozhangdepandatv': 1,
-			'Content-Type': 'application/x-www-form-urlencoded'
-		}));
+export function sendMsg(msg, roomId, sign, time) {
 	fetch('http://api.m.panda.tv/ajax_send_group_msg',{
 		method: 'POST',
 		headers: Object.assign(headers, {
 			'Host': 'api.m.panda.tv',
-			// Cookie: PD_COOKIES.join('; '),
-			'Cookie': 'R=r%3D32710864%26u%3DCnaqnGi32710864%26n%3D%25R4%25O8%25N4%25R4%25O8%25NN%25R4%25O8%25NQ%25R6%2596%2587%26le%3DMJI2MJ1yWGDjZGV2YzAioD%3D%3D%26m%3DZGH2Amp5BGp5ZGD%3D%26im%3DnUE0pPHmDFHlEvHlEzx3YaOxnJ0hM3ZyZxLmAwD0BJD2AQAuZJL5MGR2ZmDkZwOwBGAyAJZ4MJSyZv5jozp%3D; M=t%3D1474441163%26v%3D1.0%26mt%3D1474441163%26s%3D57d3ea249914c91aaedaaafce60e0fff;',
-			'xiaozhangdepandatv': 1,
-			'Content-Type': 'application/x-www-form-urlencoded'
+			Cookie: PD_COOKIES.join('; '),
+			'xiaozhangdepandatv': 1
 		}),
-		body: `__channel=appstore&__plat=ios&__version=1.1.2.1218&content=${msg}&pt_sign=${sign}&pt_time=1474423296&roomid=${roomId}&type=1`
+		body: `__channel=appstore&__plat=ios&__version=1.1.2.1218&content=${msg}&pt_sign=${sign}&pt_time=${time}&roomid=${roomId}&type=1`
 	})
 	.then(resp => {
 		return resp.json();
@@ -394,7 +387,6 @@ export function sendMsg(msg, roomId, sign) {
  * @return {[type]} [description]
  */
 export function getTokenAndLogin(){
-	// `http://api.m.panda.tv/ajax_get_token_and_login?__version=1.1.2.1218&__plat=ios&__channel=appstore&authseq=8ED353E2-3728-48DF-B70D-B1F36B9DDCF0`
 	return fetch(`http://api.m.panda.tv/ajax_get_token?__version=1.1.2.1218&__plat=ios&__channel=appstore`, {
 		headers: Object.assign(headers, {
 			Cookie: PD_COOKIES.join('; '),
@@ -403,13 +395,6 @@ export function getTokenAndLogin(){
 	})
 	.then(resp => resp.json())
 	.then(res => res.data);
-}
-
-export function getTokenAndLogin2(){
-	return fetch(`http://api.m.panda.tv/ajax_get_token_and_login?__version=1.1.2.1218&__plat=ios&__channel=appstore&authseq=AA43B606-0287-41E6-AFBD-569BA66A92D8`,{
-		headers: headers
-	})
-
 }
 
 /**

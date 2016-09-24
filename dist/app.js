@@ -58,15 +58,15 @@
 
 	var thankUtils = _interopRequireWildcard(_thankUtils);
 
-	var _chat = __webpack_require__(5);
+	var _chat = __webpack_require__(6);
 
 	var Chat = _interopRequireWildcard(_chat);
 
-	var _config = __webpack_require__(13);
+	var _config = __webpack_require__(14);
 
 	var _config2 = _interopRequireDefault(_config);
 
-	var _nodeFetch = __webpack_require__(6);
+	var _nodeFetch = __webpack_require__(7);
 
 	var _nodeFetch2 = _interopRequireDefault(_nodeFetch);
 
@@ -81,29 +81,29 @@
 	// 一万八 403249
 	// 刘从心 392132
 	// 洪湖小肖 337852
+
 	var roomId = 337852;
 
 	Chat.login(_config2.default.account, _config2.default.password).then(function (userInfo) {
 		console.log('登录用户信息', userInfo);
 		return Chat.getChatServerInfo(roomId).then(Chat.connect).then(Chat.listenEvent).then(Chat.heartBeat).then(Chat.getTokenAndLogin).then(function (data) {
-			console.log('发送弹幕的token: ', data.token);
-			data.token = 'd02927c0bd83bfac5c2a00e6414f1796';
+			console.log('发送弹幕的token: ' + data.token + ', time: ' + data.time);
 			// 开启感谢模式
 			var second = 0;
 			setInterval(function () {
 				// 获取感谢语句
 				var msg = thankUtils.buildAllThankMsg();
 				if (msg) {
-					Chat.sendMsg(msg, roomId, data.token);
+					Chat.sendMsg(msg, roomId, data.token, data.time);
 					console.log('待播报礼物人数：' + Object.keys(_thankQueue2.default.all()).length);
 				} else {
-					second++;
-					if (second > 3) {
-						Chat.sendMsg('6666666', roomId, data.token);
-						second = 0;
-					}
+					// second++;
+					// if(second > 3){
+					// 	Chat.sendMsg('6666666', roomId, data.token, data.time);
+					// 	second = 0;
+					// }
 				}
-			}, 3000);
+			}, 5000);
 		});
 	}).catch(function (e) {
 		console.log('error', e);
@@ -138,6 +138,12 @@
 
 	exports.default = {
 		addItem: function addItem(id, item) {
+			this._addItem(id, item);
+		},
+		setItem: function setItem(id, item) {
+			this._addItem(id, item, true);
+		},
+		_addItem: function _addItem(id, item, reset) {
 			var obj = Queue[id];
 			if (!obj) {
 				obj = {
@@ -150,7 +156,7 @@
 				if (!count) {
 					obj[item.giftType] = parseInt(item.count);
 				} else {
-					obj[item.giftType] = parseInt(count) + parseInt(item.count);
+					obj[item.giftType] = reset === true ? count : parseInt(count) + parseInt(item.count);
 				}
 				Queue[id] = obj;
 			}
@@ -197,6 +203,10 @@
 
 	var _giftType2 = _interopRequireDefault(_giftType);
 
+	var _msg = __webpack_require__(5);
+
+	var _msg2 = _interopRequireDefault(_msg);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	/**
@@ -204,9 +214,10 @@
 	 * @param  {[type]} addThankItem [description]
 	 * @return {[type]}              [description]
 	 */
-	function addThankItem(messageModel, giftType, count) {
+	function addThankItem(messageModel, giftType, count, combo) {
 		var from = messageModel.from;
-		_thankQueue2.default.addItem(from.rid, {
+
+		_thankQueue2.default[combo && combo > 1 ? 'setItem' : 'addItem'](from.rid, {
 			giftType: giftType,
 			nickName: from.nickName,
 			count: count
@@ -251,10 +262,13 @@
 		var items = _thankQueue2.default.nextAll();
 		var msg = '';
 		for (var i = 0; i < items.length; i++) {
+			if (msg.length > 30) {
+				break;
+			}
 			var item = items[i];
 			msg += buildThankMsg(item);
 		}
-		return msg ? msg : null;
+		return msg ? msg + (0, _msg2.default)() : null;
 	}
 
 /***/ },
@@ -276,6 +290,23 @@
 
 /***/ },
 /* 5 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	exports.default = function () {
+		var index = parseInt(Math.random() * msgList.length);
+		return msgList[index];
+	};
+
+	var msgList = ['有免费竹子的走一波', '没订阅的订阅一波，感谢！', '主播就是这么6，大家订阅一波，不迷路。', '哇塞，66666'];
+
+/***/ },
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -291,23 +322,23 @@
 	exports.getTokenAndLogin = getTokenAndLogin;
 	exports.login = login;
 
-	var _nodeFetch = __webpack_require__(6);
+	var _nodeFetch = __webpack_require__(7);
 
 	var _nodeFetch2 = _interopRequireDefault(_nodeFetch);
 
-	var _net = __webpack_require__(7);
+	var _net = __webpack_require__(8);
 
 	var _net2 = _interopRequireDefault(_net);
 
-	var _cookie = __webpack_require__(8);
+	var _cookie = __webpack_require__(9);
 
 	var _cookie2 = _interopRequireDefault(_cookie);
 
-	var _userType = __webpack_require__(9);
+	var _userType = __webpack_require__(10);
 
 	var _userType2 = _interopRequireDefault(_userType);
 
-	var _messageType = __webpack_require__(10);
+	var _messageType = __webpack_require__(11);
 
 	var _messageType2 = _interopRequireDefault(_messageType);
 
@@ -319,11 +350,11 @@
 
 	var thankUtils = _interopRequireWildcard(_thankUtils);
 
-	var _CryptoJS = __webpack_require__(11);
+	var _CryptoJS = __webpack_require__(12);
 
 	var _CryptoJS2 = _interopRequireDefault(_CryptoJS);
 
-	var _bluebird = __webpack_require__(12);
+	var _bluebird = __webpack_require__(13);
 
 	var _bluebird2 = _interopRequireDefault(_bluebird);
 
@@ -388,8 +419,8 @@
 			console.log('connect success');
 		});
 
-		var msg = 'u:' + serverInfo['rid'] + '@' + serverInfo['appid'] + '\nk:1\nt:300\nts:' + serverInfo['ts'] + '\nsign:' + serverInfo['sign'] + '\nauthtype:' + serverInfo['authtype'];
-
+		var msg = ['u:' + serverInfo.rid + '@' + serverInfo.appid, 'k:1', 't:300', 'ts:' + serverInfo.ts, 'sign:' + serverInfo.sign, 'authtype:' + serverInfo.authtype].join('\n');
+		console.log(msg);
 		_sendData(socket, msg);
 
 		return _bluebird2.default.resolve({
@@ -475,17 +506,17 @@
 				//         price: '2' } } }
 				var price = content.price;
 				if (price / 2 === 1) {
-					thankUtils.addThankItem(model, _giftType2.default.FANTUAN, 1);
+					thankUtils.addThankItem(model, _giftType2.default.FANTUAN, 1, content.combo);
 					console.log(('*******\t' + nickName + '送给主播[1]个饭团\t*******').cyan);
 				} else if (price / 50 === 1) {
 					console.log(msg);
-					thankUtils.addThankItem(model, _giftType2.default.KAOYU, 1);
+					thankUtils.addThankItem(model, _giftType2.default.KAOYU, 1, content.combo);
 					console.log(('*******\t' + nickName + '送给主播[1]个烤鱼\t*******').cyan);
 				} else if (price / 1000 === 1) {
-					thankUtils.addThankItem(model, _giftType2.default.LONGXIA, 1);
+					thankUtils.addThankItem(model, _giftType2.default.LONGXIA, 1, content.combo);
 					console.log(('*******\t' + nickName + '送给主播[1]个龙虾\t*******').cyan);
 				} else if (price / 10000 === 1) {
-					thankUtils.addThankItem(model, _giftType2.default.FOTIAOQIANG, 1);
+					thankUtils.addThankItem(model, _giftType2.default.FOTIAOQIANG, 1, content.combo);
 					console.log(('*******\t' + nickName + '送给主播[1]个佛跳墙\t*******').cyan);
 				}
 				// thank(roomId, nickName, 0, '饭团' );
@@ -677,24 +708,15 @@
 		return _bluebird2.default.resolve(params);
 	}
 
-	function sendMsg(msg, roomId, sign) {
-		console.log(Object.assign(headers, {
-			'Host': 'api.m.panda.tv',
-			// Cookie: PD_COOKIES.join('; '),
-			'Cookie': 'R=r%3D32710864%26u%3DCnaqnGi32710864%26n%3D%25R4%25O8%25N4%25R4%25O8%25NN%25R4%25O8%25NQ%25R6%2596%2587%26le%3DMJI2MJ1yWGDjZGV2YzAioD%3D%3D%26m%3DZGH2Amp5BGp5ZGD%3D%26im%3DnUE0pPHmDFHlEvHlEzx3YaOxnJ0hM3ZyZxLmAwD0BJD2AQAuZJL5MGR2ZmDkZwOwBGAyAJZ4MJSyZv5jozp%3D; M=t%3D1474441163%26v%3D1.0%26mt%3D1474441163%26s%3D57d3ea249914c91aaedaaafce60e0fff;',
-			'xiaozhangdepandatv': 1,
-			'Content-Type': 'application/x-www-form-urlencoded'
-		}));
+	function sendMsg(msg, roomId, sign, time) {
 		(0, _nodeFetch2.default)('http://api.m.panda.tv/ajax_send_group_msg', {
 			method: 'POST',
 			headers: Object.assign(headers, {
 				'Host': 'api.m.panda.tv',
-				// Cookie: PD_COOKIES.join('; '),
-				'Cookie': 'R=r%3D32710864%26u%3DCnaqnGi32710864%26n%3D%25R4%25O8%25N4%25R4%25O8%25NN%25R4%25O8%25NQ%25R6%2596%2587%26le%3DMJI2MJ1yWGDjZGV2YzAioD%3D%3D%26m%3DZGH2Amp5BGp5ZGD%3D%26im%3DnUE0pPHmDFHlEvHlEzx3YaOxnJ0hM3ZyZxLmAwD0BJD2AQAuZJL5MGR2ZmDkZwOwBGAyAJZ4MJSyZv5jozp%3D; M=t%3D1474441163%26v%3D1.0%26mt%3D1474441163%26s%3D57d3ea249914c91aaedaaafce60e0fff;',
-				'xiaozhangdepandatv': 1,
-				'Content-Type': 'application/x-www-form-urlencoded'
+				Cookie: PD_COOKIES.join('; '),
+				'xiaozhangdepandatv': 1
 			}),
-			body: '__channel=appstore&__plat=ios&__version=1.1.2.1218&content=' + msg + '&pt_sign=' + sign + '&pt_time=1474423296&roomid=' + roomId + '&type=1'
+			body: '__channel=appstore&__plat=ios&__version=1.1.2.1218&content=' + msg + '&pt_sign=' + sign + '&pt_time=' + time + '&roomid=' + roomId + '&type=1'
 		}).then(function (resp) {
 			return resp.json();
 		}).then(function (res) {
@@ -711,7 +733,6 @@
 	 * @return {[type]} [description]
 	 */
 	function getTokenAndLogin() {
-		// `http://api.m.panda.tv/ajax_get_token_and_login?__version=1.1.2.1218&__plat=ios&__channel=appstore&authseq=8ED353E2-3728-48DF-B70D-B1F36B9DDCF0`
 		return (0, _nodeFetch2.default)('http://api.m.panda.tv/ajax_get_token?__version=1.1.2.1218&__plat=ios&__channel=appstore', {
 			headers: Object.assign(headers, {
 				Cookie: PD_COOKIES.join('; '),
@@ -810,25 +831,25 @@
 	}
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports) {
 
 	module.exports = require("node-fetch");
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports) {
 
 	module.exports = require("net");
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports) {
 
 	module.exports = require("cookie");
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -862,7 +883,7 @@
 	};
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -935,7 +956,7 @@
 	};
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -1326,13 +1347,13 @@
 	module.exports = CryptoJS;
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports) {
 
 	module.exports = require("bluebird");
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports) {
 
 	'use strict';
