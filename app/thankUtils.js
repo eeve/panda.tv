@@ -7,10 +7,10 @@ import Msg from './msg';
  * @param  {[type]} addThankItem [description]
  * @return {[type]}              [description]
  */
-export function addThankItem(messageModel, giftType, count, combo) {
+export function addThankItem(messageModel, giftType, count) {
 	const from = messageModel.from;
 
-	thankQueue[combo && combo > 1 ? 'setItem' : 'addItem'](from.rid,{
+	thankQueue.addItem(from.rid,{
 		giftType: giftType,
 		nickName: from.nickName,
 		count: count
@@ -29,7 +29,9 @@ export function buildThankMsg(item) {
 	}
 	let msg = `感谢${item.nickName}送的`;
 	if(item[GiftType.ZHUZI]){
-		msg += `${item[GiftType.ZHUZI]}个竹子。`;
+		let count = item[GiftType.ZHUZI];
+		count = count > 1000 ? '一大波' : count + '个';
+		msg += `${count}竹子。`;
 	}
 	if(item[GiftType.FANTUAN]){
 		msg += `${item[GiftType.FANTUAN]}个饭团。`;
@@ -55,7 +57,7 @@ export function buildAllThankMsg() {
 	const items = thankQueue.nextAll();
 	let msg = '';
 	for (var i = 0; i < items.length; i++) {
-		if(msg.length > 30) {
+		if(msg.length > 50) {
 			break;
 		}
 		let item = items[i];

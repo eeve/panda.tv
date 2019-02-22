@@ -165,17 +165,17 @@ function _formatMsg(msg) {
 			//         price: '2' } } }
 			const price = content.price;
 			if(price / 2 === 1){
-				thankUtils.addThankItem(model, GiftType.FANTUAN, 1, content.combo);
+				thankUtils.addThankItem(model, GiftType.FANTUAN, 1);
 				console.log(`*******\t${nickName}送给主播[1]个饭团\t*******`.cyan);
 			}else if(price / 50 === 1){
 				console.log(msg);
-				thankUtils.addThankItem(model, GiftType.KAOYU, 1, content.combo);
+				thankUtils.addThankItem(model, GiftType.KAOYU, 1);
 				console.log(`*******\t${nickName}送给主播[1]个烤鱼\t*******`.cyan);
 			}else if(price / 1000 === 1){
-				thankUtils.addThankItem(model, GiftType.LONGXIA, 1, content.combo);
+				thankUtils.addThankItem(model, GiftType.LONGXIA, 1);
 				console.log(`*******\t${nickName}送给主播[1]个龙虾\t*******`.cyan);
 			}else if(price / 10000 === 1){
-				thankUtils.addThankItem(model, GiftType.FOTIAOQIANG, 1, content.combo);
+				thankUtils.addThankItem(model, GiftType.FOTIAOQIANG, 1);
 				console.log(`*******\t${nickName}送给主播[1]个佛跳墙\t*******`.cyan);
 			}
 			// thank(roomId, nickName, 0, '饭团' );

@@ -74,15 +74,7 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	// 卡哥 392616
-	// 楚楚可云 314497
-	// Xuebaby 377420
-	// 主播福成	440526
-	// 一万八 403249
-	// 刘从心 392132
-	// 洪湖小肖 337852
-
-	var roomId = 337852;
+	var roomId = 350372;
 
 	Chat.login(_config2.default.account, _config2.default.password).then(function (userInfo) {
 		console.log('登录用户信息', userInfo);
@@ -103,7 +95,7 @@
 					// 	second = 0;
 					// }
 				}
-			}, 5000);
+			}, 10000);
 		});
 	}).catch(function (e) {
 		console.log('error', e);
@@ -138,12 +130,6 @@
 
 	exports.default = {
 		addItem: function addItem(id, item) {
-			this._addItem(id, item);
-		},
-		setItem: function setItem(id, item) {
-			this._addItem(id, item, true);
-		},
-		_addItem: function _addItem(id, item, reset) {
 			var obj = Queue[id];
 			if (!obj) {
 				obj = {
@@ -156,7 +142,7 @@
 				if (!count) {
 					obj[item.giftType] = parseInt(item.count);
 				} else {
-					obj[item.giftType] = reset === true ? count : parseInt(count) + parseInt(item.count);
+					obj[item.giftType] = parseInt(count) + parseInt(item.count);
 				}
 				Queue[id] = obj;
 			}
@@ -214,10 +200,10 @@
 	 * @param  {[type]} addThankItem [description]
 	 * @return {[type]}              [description]
 	 */
-	function addThankItem(messageModel, giftType, count, combo) {
+	function addThankItem(messageModel, giftType, count) {
 		var from = messageModel.from;
 
-		_thankQueue2.default[combo && combo > 1 ? 'setItem' : 'addItem'](from.rid, {
+		_thankQueue2.default.addItem(from.rid, {
 			giftType: giftType,
 			nickName: from.nickName,
 			count: count
@@ -236,7 +222,9 @@
 		}
 		var msg = '感谢' + item.nickName + '送的';
 		if (item[_giftType2.default.ZHUZI]) {
-			msg += item[_giftType2.default.ZHUZI] + '个竹子。';
+			var count = item[_giftType2.default.ZHUZI];
+			count = count > 1000 ? '一大波' : count + '个';
+			msg += count + '竹子。';
 		}
 		if (item[_giftType2.default.FANTUAN]) {
 			msg += item[_giftType2.default.FANTUAN] + '个饭团。';
@@ -262,7 +250,7 @@
 		var items = _thankQueue2.default.nextAll();
 		var msg = '';
 		for (var i = 0; i < items.length; i++) {
-			if (msg.length > 30) {
+			if (msg.length > 50) {
 				break;
 			}
 			var item = items[i];
@@ -303,7 +291,7 @@
 		return msgList[index];
 	};
 
-	var msgList = ['有免费竹子的走一波', '没订阅的订阅一波，感谢！', '主播就是这么6，大家订阅一波，不迷路。', '哇塞，66666'];
+	var msgList = ['有免费竹子的走一波', '没订阅的订阅一波，感谢！', '主播就是这么6，没订阅的订阅一波，订阅不迷路。', '66666'];
 
 /***/ },
 /* 6 */
@@ -506,17 +494,17 @@
 				//         price: '2' } } }
 				var price = content.price;
 				if (price / 2 === 1) {
-					thankUtils.addThankItem(model, _giftType2.default.FANTUAN, 1, content.combo);
+					thankUtils.addThankItem(model, _giftType2.default.FANTUAN, 1);
 					console.log(('*******\t' + nickName + '送给主播[1]个饭团\t*******').cyan);
 				} else if (price / 50 === 1) {
 					console.log(msg);
-					thankUtils.addThankItem(model, _giftType2.default.KAOYU, 1, content.combo);
+					thankUtils.addThankItem(model, _giftType2.default.KAOYU, 1);
 					console.log(('*******\t' + nickName + '送给主播[1]个烤鱼\t*******').cyan);
 				} else if (price / 1000 === 1) {
-					thankUtils.addThankItem(model, _giftType2.default.LONGXIA, 1, content.combo);
+					thankUtils.addThankItem(model, _giftType2.default.LONGXIA, 1);
 					console.log(('*******\t' + nickName + '送给主播[1]个龙虾\t*******').cyan);
 				} else if (price / 10000 === 1) {
-					thankUtils.addThankItem(model, _giftType2.default.FOTIAOQIANG, 1, content.combo);
+					thankUtils.addThankItem(model, _giftType2.default.FOTIAOQIANG, 1);
 					console.log(('*******\t' + nickName + '送给主播[1]个佛跳墙\t*******').cyan);
 				}
 				// thank(roomId, nickName, 0, '饭团' );

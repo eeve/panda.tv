@@ -15,7 +15,7 @@ import fetch from 'node-fetch';
 // 刘从心 392132
 // 洪湖小肖 337852
 
-const roomId = 337852;
+const roomId = 470673;
 
 Chat.login(config.account, config.password)
 	.then(userInfo => {
@@ -42,7 +42,7 @@ Chat.login(config.account, config.password)
 						// 	second = 0;
 						// }
 					}
-				}, 5000);
+				}, 10000);
 			});
 	})
 	.catch(e => {
